@@ -1,0 +1,144 @@
+{
+  "theme": "dark",
+  "archetype": "Archetype 5 (Luxury) mixed with subtle Archetype 7 (Electric & Neon)",
+  "brand": {
+    "name": "Oculux AI Glasses",
+    "vibe": "Ultra-premium, high-performance tech meets everyday luxury",
+    "tone": "Cinematic, sophisticated, sharp, forward-thinking"
+  },
+  "colors": {
+    "background": {
+      "primary": "#050505",
+      "secondary": "#0A0A0A",
+      "tertiary": "#121212"
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#A1A1AA",
+      "tertiary": "#71717A"
+    },
+    "accent": {
+      "primary": "#00F0FF",
+      "primary_glow": "rgba(0, 240, 255, 0.5)",
+      "secondary": "#FFD700"
+    },
+    "border": {
+      "default": "rgba(255, 255, 255, 0.1)",
+      "focus": "rgba(0, 240, 255, 0.5)"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "heading": "'Clash Display', sans-serif",
+      "body": "'Outfit', sans-serif",
+      "mono": "'JetBrains Mono', monospace"
+    },
+    "hierarchy": {
+      "h1": "text-5xl sm:text-6xl lg:text-7xl font-medium tracking-tight leading-none",
+      "h2": "text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight",
+      "h3": "text-2xl sm:text-3xl font-medium tracking-tight",
+      "body": "text-base sm:text-lg text-gray-300 leading-relaxed",
+      "overline": "text-xs font-mono uppercase tracking-[0.2em] text-[#00F0FF]"
+    }
+  },
+  "spacing_and_layout": {
+    "container": "max-w-7xl mx-auto px-6 sm:px-8 lg:px-12",
+    "section_gap": "py-24 sm:py-32",
+    "grid_system": "grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8",
+    "bento_grid": "grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[250px]"
+  },
+  "surface_styles": {
+    "glassmorphism": "backdrop-blur-2xl bg-black/40 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)]",
+    "card": "bg-[#0A0A0A] border border-white/5 rounded-2xl overflow-hidden hover:border-white/20 transition-colors duration-300",
+    "glowing_edge": "relative before:absolute before:-inset-[1px] before:bg-gradient-to-r before:from-[#00F0FF]/50 before:to-transparent before:rounded-full before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500"
+  },
+  "components": {
+    "navigation": {
+      "layout": "Fixed top-0 w-full z-50",
+      "style": "backdrop-blur-xl bg-black/60 border-b border-white/5",
+      "links": "text-sm font-medium text-white/70 hover:text-white transition-colors",
+      "actions": "flex items-center gap-4"
+    },
+    "hero": {
+      "layout": "min-h-screen relative flex items-center",
+      "composition": "Asymmetric left-aligned content overlaying full-bleed background",
+      "background_overlay": "absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent",
+      "cta": "bg-white text-black px-8 py-4 rounded-full font-medium hover:scale-105 transition-transform flex items-center gap-2"
+    },
+    "pdp_product_grid": {
+      "layout": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8",
+      "card_style": "group relative aspect-[4/5] bg-[#0A0A0A] rounded-2xl overflow-hidden",
+      "image_behavior": "object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700",
+      "overlay": "absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+    },
+    "tech_spec_teardown": {
+      "interaction": "Scroll-triggered animation using framer-motion",
+      "visual": "Exploded view of glasses pulling apart to reveal AI chip, camera, open-ear audio",
+      "markers": "Floating hot-spots with pulsing cyan glow linking to detail popovers"
+    },
+    "ar_launcher": {
+      "placement": "Sticky floating bottom-right or prominent on PDP",
+      "style": "bg-[#121212] border border-[#00F0FF]/30 text-[#00F0FF] rounded-full px-6 py-3 flex items-center gap-3 shadow-[0_0_20px_rgba(0,240,255,0.2)] hover:shadow-[0_0_30px_rgba(0,240,255,0.4)] transition-shadow backdrop-blur-md",
+      "icon": "Camera or 3D cube icon"
+    },
+    "social_reels_grid": {
+      "layout": "grid grid-cols-2 md:grid-cols-4 gap-4",
+      "item_style": "aspect-[9/16] rounded-xl overflow-hidden relative group cursor-pointer",
+      "play_button": "absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+    },
+    "cart_drawer": {
+      "style": "fixed right-0 top-0 h-full w-[400px] bg-[#0A0A0A] border-l border-white/10 shadow-2xl transform transition-transform z-[60]",
+      "overlay": "fixed inset-0 bg-black/60 backdrop-blur-sm z-[59]"
+    },
+    "footer": {
+      "layout": "py-24 border-t border-white/10 bg-[#050505]",
+      "newsletter": "flex gap-2 w-full max-w-md",
+      "input": "bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00F0FF] w-full"
+    }
+  },
+  "motion_and_interactions": {
+    "hover_states": "Subtle scale up (scale-105), opacity increases, and border color shifts to cyan/white.",
+    "page_transitions": "Fade in and slide up from bottom (y: 20 -> y: 0) with opacity (0 -> 1) over 0.6s ease-out.",
+    "scroll_animations": "Elements reveal on scroll using intersection observer, staggered children for lists/grids."
+  },
+  "media": {
+    "hero": {
+      "url": "https://images.unsplash.com/photo-1508179522353-11ba468c4a1c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDF8MHwxfHNlYXJjaHwyfHxjaW5lbWF0aWMlMjBzbWFydCUyMGdsYXNzZXMlMjBwb3J0cmFpdCUyMG5lb24lMjBnbG93fGVufDB8fHx8MTc4MTQ5MzE0Mnww&ixlib=rb-4.1.0&q=85",
+      "description": "Cinematic portrait of man looking through glass at night, neon reflections, representing the flagship smart glasses experience."
+    },
+    "collection_kids": {
+      "url": "https://images.unsplash.com/photo-1702284970879-4a0f0b76cee5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTN8MHwxfHNlYXJjaHwxfHxjaGlsZCUyMHdlYXJpbmclMjBzdW5nbGFzc2VzJTIwY2luZW1hdGljfGVufDB8fHx8MTc4MTQ5MzE0Mnww&ixlib=rb-4.1.0&q=85",
+      "description": "Cinematic shot of child wearing sunglasses in dramatic lighting, representing the Kids interactive learning tier."
+    },
+    "collection_pro": {
+      "url": "https://images.unsplash.com/photo-1634457000710-8ab0e71b2b87?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwyfHx5b3VuZyUyMHByb2Zlc3Npb25hbCUyMHdlYXJpbmclMjBzbWFydCUyMGdsYXNzZXMlMjBkYXJrJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3ODE0OTMxNDJ8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Young professional woman wearing glasses in dark room, representing Youth/Pro productivity tier."
+    },
+    "collection_senior": {
+      "url": "https://images.unsplash.com/photo-1716236086408-feca5a7c682c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwyfHxzZW5pb3IlMjB3ZWFyaW5nJTIwc3VuZ2xhc3NlcyUyMGNpbmVtYXRpY3xlbnwwfHx8fDE3ODE0OTMxNDJ8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Senior woman wearing sunglasses in cinematic light, representing Seniors health monitoring tier."
+    },
+    "product_showcase_1": {
+      "url": "https://images.unsplash.com/photo-1764179627974-25d96c2a1e97?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHwyfHxsdXh1cnklMjBzdW5nbGFzc2VzJTIwZGFyayUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzgxNDkzMTQyfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Man with beard and luxury sunglasses on black background, highlighting premium aesthetics."
+    },
+    "product_showcase_2": {
+      "url": "https://images.unsplash.com/photo-1762314908505-24bccd998715?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjBzdW5nbGFzc2VzJTIwZGFyayUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzgxNDkzMTQyfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Man leaning on sports car at night wearing sunglasses, cinematic depth of field."
+    }
+  },
+  "testing_attributes": {
+    "required": true,
+    "format": "data-testid='[role]-[context]'",
+    "examples": ["data-testid='nav-cart-button'", "data-testid='hero-shop-now-button'", "data-testid='ar-launcher-button'"]
+  },
+  "instructions_to_main_agent": [
+    "Use pure HTML + Tailwind for complex structural marketing layouts (Hero, Teardown section, Reels Grid).",
+    "Use Shadcn UI for interactive elements like Select, Dialog, Sheet (Cart Drawer), Tabs, but heavily customize them to remove default styling and match the dark, high-contrast, premium aesthetic.",
+    "Implement scroll-triggered animations using framer-motion, particularly for the 'Tech Spec Teardown' section.",
+    "Do NOT use Inter or Roboto. Follow the defined Clash Display / Outfit font pair.",
+    "Ensure all interactive elements have data-testid attributes for testing.",
+    "The site must be mobile-responsive, utilizing 'glassmorphic' navigation and touch-friendly targets.",
+    "Utilize the provided image URLs exclusively for the designated sections."
+  ]
+}
