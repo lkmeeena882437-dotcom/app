@@ -14,11 +14,11 @@ const PILLARS = [
 
 export default function Technology() {
   return (
-    <main className="bg-[#050505] pt-28 pb-24">
+    <main className="bg-white pt-28 pb-24">
       <section className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="overline">The Technology</div>
-        <h1 className="display text-5xl sm:text-7xl mt-3 leading-none max-w-3xl">A supercomputer<br/><span className="text-[#00F0FF] italic">on your nose.</span></h1>
-        <p className="text-white/60 mt-6 max-w-xl text-lg">
+        <h1 className="display text-5xl sm:text-7xl mt-3 leading-none max-w-3xl">A supercomputer<br/><span className="ink-soft italic">on your nose.</span></h1>
+        <p className="ink-mute mt-6 max-w-xl text-lg">
           Three years of relentless engineering. Aerospace materials. Six custom
           silicon designs. One unforgettable wearable.
         </p>
@@ -26,7 +26,7 @@ export default function Technology() {
 
       <TechTeardown />
 
-      <section className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+      <section className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 bg-white">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {PILLARS.map((p, i) => (
             <motion.div
@@ -35,11 +35,11 @@ export default function Technology() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.07, duration: 0.6 }}
-              className="rounded-2xl border border-white/10 p-6 bg-white/[0.02] hover:border-[#00F0FF]/30 transition-colors"
+              className="rounded-2xl border border-[#E5E5EA] p-6 bg-[#F5F5F7] hover:border-[#1D1D1F] transition-colors"
             >
-              <p.icon className="w-5 h-5 text-[#00F0FF]" />
+              <p.icon className="w-5 h-5 text-[#1D1D1F]" />
               <h3 className="display text-2xl mt-4">{p.title}</h3>
-              <p className="text-sm text-white/60 mt-2 leading-relaxed">{p.desc}</p>
+              <p className="text-sm ink-mute mt-2 leading-relaxed">{p.desc}</p>
             </motion.div>
           ))}
         </div>

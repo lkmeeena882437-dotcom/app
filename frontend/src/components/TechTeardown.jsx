@@ -21,41 +21,35 @@ export default function TechTeardown() {
     <section
       ref={ref}
       data-testid={TEARDOWN.section}
-      className="relative py-32 sm:py-40 overflow-hidden bg-[#040404]"
+      className="relative py-32 sm:py-40 overflow-hidden soft-floor"
     >
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="max-w-2xl">
           <div className="overline">Inside Oculux</div>
           <h2 className="display text-4xl sm:text-5xl lg:text-6xl mt-3">
             Cinematic intelligence,<br/>
-            <span className="text-[#00F0FF]">engineered atom by atom.</span>
+            <span className="ink-soft italic">engineered atom by atom.</span>
           </h2>
-          <p className="text-white/60 mt-6 text-lg leading-relaxed">
+          <p className="ink-mute mt-6 text-lg leading-relaxed">
             Scroll to disassemble the flagship. Every component is designed to
             disappear on your face and amplify your perception.
           </p>
         </div>
 
         <div className="relative mt-16 h-[520px] sm:h-[640px]">
-          <motion.div
-            style={{ x: left }}
-            className="absolute inset-0 flex items-center justify-center"
-          >
+          <motion.div style={{ x: left }} className="absolute inset-0 flex items-center justify-center">
             <img
               src="https://images.unsplash.com/photo-1762314908505-24bccd998715?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjBzdW5nbGFzc2VzJTIwZGFyayUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzgxNDkzMTQyfDA&ixlib=rb-4.1.0&q=85"
               alt="Glasses left frame"
-              className="h-full w-auto object-contain opacity-90"
+              className="h-full w-auto object-contain"
               style={{ clipPath: "inset(0 50% 0 0)" }}
             />
           </motion.div>
-          <motion.div
-            style={{ x: right }}
-            className="absolute inset-0 flex items-center justify-center"
-          >
+          <motion.div style={{ x: right }} className="absolute inset-0 flex items-center justify-center">
             <img
               src="https://images.unsplash.com/photo-1762314908505-24bccd998715?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjBzdW5nbGFzc2VzJTIwZGFyayUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzgxNDkzMTQyfDA&ixlib=rb-4.1.0&q=85"
               alt="Glasses right frame"
-              className="h-full w-auto object-contain opacity-90"
+              className="h-full w-auto object-contain"
               style={{ clipPath: "inset(0 0 0 50%)" }}
             />
           </motion.div>
@@ -68,13 +62,13 @@ export default function TechTeardown() {
               data-testid={TEARDOWN.hotspot(h.key)}
             >
               <div className="relative">
-                <div className="w-3 h-3 rounded-full bg-[#00F0FF] pulse-dot" />
-                <div className="absolute left-6 top-1/2 -translate-y-1/2 w-56 glass rounded-xl p-3 hidden sm:block">
+                <div className="w-3 h-3 rounded-full bg-[#1D1D1F] pulse-dot-silver" />
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 w-56 glass-card rounded-xl p-3 hidden sm:block">
                   <div className="flex items-center gap-2">
-                    <h.icon className="w-4 h-4 text-[#00F0FF]" />
-                    <div className="text-sm font-medium">{h.title}</div>
+                    <h.icon className="w-4 h-4 text-[#1D1D1F]" />
+                    <div className="text-sm font-medium ink">{h.title}</div>
                   </div>
-                  <p className="text-xs text-white/60 mt-1">{h.desc}</p>
+                  <p className="text-xs ink-mute mt-1">{h.desc}</p>
                 </div>
               </div>
             </motion.div>
@@ -83,10 +77,10 @@ export default function TechTeardown() {
 
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:hidden">
           {HOTSPOTS.map((h) => (
-            <div key={h.key} className="glass rounded-xl p-4">
-              <h.icon className="w-5 h-5 text-[#00F0FF]" />
-              <div className="text-sm font-medium mt-2">{h.title}</div>
-              <p className="text-xs text-white/60 mt-1">{h.desc}</p>
+            <div key={h.key} className="glass-card rounded-xl p-4">
+              <h.icon className="w-5 h-5 text-[#1D1D1F]" />
+              <div className="text-sm font-medium mt-2 ink">{h.title}</div>
+              <p className="text-xs ink-mute mt-1">{h.desc}</p>
             </div>
           ))}
         </div>

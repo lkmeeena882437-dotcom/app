@@ -19,6 +19,7 @@ import Auth from "@/pages/Auth";
 import Account from "@/pages/Account";
 import CheckoutResult from "@/pages/CheckoutResult";
 import Technology from "@/pages/Technology";
+import Admin from "@/pages/Admin";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
               <Route path="/cart" element={<CartPage />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/account" element={<Account />} />
+              <Route path="/admin" element={<Admin />} />
               <Route path="/checkout/success" element={<CheckoutResult outcome="success" />} />
               <Route path="/checkout/cancel" element={<CheckoutResult outcome="cancel" />} />
               <Route path="*" element={<Home />} />
@@ -43,7 +45,18 @@ function App() {
             <CartDrawer />
             <SupportWidget />
             <Footer />
-            <Toaster theme="dark" position="top-right" toastOptions={{ style: { background: "#0a0a0a", border: "1px solid rgba(255,255,255,0.08)", color: "#fff" } }} />
+            <Toaster
+              theme="light"
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: "#FFFFFF",
+                  border: "1px solid #E5E5EA",
+                  color: "#1D1D1F",
+                  boxShadow: "0 12px 40px -12px rgba(0,0,0,0.18)",
+                },
+              }}
+            />
           </CartProvider>
         </AuthProvider>
       </BrowserRouter>

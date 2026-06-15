@@ -1,0 +1,38 @@
+{
+  "summary": "Iteration 2 full test pass — backend 28/28 pytest green (added TestAdmin class covering admin seed, 401/403 guards, stats, product CRUD with persistence + duplicate-slug 400, orders/users listings, password redaction). Frontend verified: light mode (body=#FFFFFF, primary CTA=#1D1D1F dark ink, no cyan), Navigation testids work, ADMIN chip appears in nav after admin login, Shop tier filter (?tier=kids) renders 2 cards, AR Try-On exposes data-testids ar-start-button/ar-canvas/ar-size-slider/ar-y-slider, /admin route shows 'Admin access only' for customers and full Operations dashboard (Revenue $0.00 / Orders 0 / Products 6 / Customers 4) for admin@oculux.com. Admin Products tab opens New Product modal with all labelled fields (NAME, SLUG, TIER, COLOR, PRICE, STOCK, TAGLINE, IMAGE URL, DESCRIPTION, FEATURES, SPECS); Edit modal pre-fills correctly. Resend email no-op confirmed: RESEND_API_KEY empty → server logs 'Receipt email skipped'; checkout/status structure intact (verified via pytest).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Admin ProductForm (modal)", "issue": "Form <input>/<textarea> elements have NO 'name' attribute and labels are not wrapped <label htmlFor=...> — this severely hurts a11y and testability. Recommend adding name attributes (slug,name,tier,color,price,stock,tagline,image,description,features,specs) and proper <label htmlFor=>. Also no data-testid on the form/save/cancel/edit/delete/new-product buttons in /app/frontend/src/pages/Admin.jsx.", "selector": "form input, form textarea inside ProductForm", "priority": "MEDIUM"},
+      {"component": "Admin tabs/dashboard", "issue": "Tab buttons (Overview/Products/Orders/Users), Save/Delete/Edit/New-product buttons, and StatCards lack data-testid attributes. Forces text-based selectors which are fragile (uppercase via CSS made our 'Customers' text-search miss until we matched 'CUSTOMERS').", "selector": "/app/frontend/src/pages/Admin.jsx", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Add name='<field>' and htmlFor labels to every input/textarea/select inside ProductForm in /app/frontend/src/pages/Admin.jsx (slug, name, tier, color, price, stock, tagline, image, description, features, specs).",
+    "Add data-testid attributes to Admin tab buttons, New product, Save, Cancel, Edit, Delete in /app/frontend/src/pages/Admin.jsx (e.g. admin-tab-products, admin-new-product-btn, admin-form-save, admin-row-edit, admin-row-delete).",
+    "Optional: also add data-testid='nav-admin-chip' to the Admin chip in /app/frontend/src/components/Navigation.jsx so it can be asserted directly."
+  ],
+  "critical_code_review_comments": [
+    "server.py now ~590 lines — still acceptable but Admin endpoints + email helpers are pushing it. Consider extracting admin/, email/, payments/ into routers under /app/backend/routers/.",
+    "Admin seed in @app.on_event('startup'): admin user is re-flagged is_admin=true on every restart — good idempotency. ADMIN_PASSWORD is plaintext in env; password is hashed only on first seed so changing ADMIN_PASSWORD after first run will NOT update the stored hash (silently keeps old credentials). Consider re-hashing on startup if env value differs.",
+    "send_receipt_email is correctly fire-and-forget via asyncio.create_task and no-ops cleanly when RESEND_API_KEY is empty (log line confirmed).",
+    "ProductUpsert lacks slug-format validation (could accept 'My Slug!'). Consider Pydantic Field(pattern='^[a-z0-9-]+$').",
+    "AR Try-On ARTryOn.jsx dynamic-imports MediaPipe tasks-vision from CDN — graceful, but offer a small fallback message if the CDN is blocked (network=offline). Currently a denied camera shows a toast; an import-failed state should also be surfaced."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py (added TestAdmin class — 8 new admin tests; total now 28)"
+  ],
+  "success_rate": {"backend": "100% (28/28)", "frontend": "~90% — admin create/delete via UI not verified end-to-end through Playwright due to submit button below modal fold and lack of testids; backend equivalent endpoints verified by pytest"},
+  "test_credentials": "Admin: admin@oculux.com / OculuxAdmin#2026 (seeded). Customer: tester+<rand>@oculux.com / oculux-test-2026!. From /app/memory/test_credentials.md — confirmed working.",
+  "seed_data_creation": "Backend startup re-seeds 6 products idempotently and ensures admin user with is_admin=true. Backend pytest creates: 1 customer (tester+<rand>), 1 newsletter signup, 1 stripe pending tx per run, 1 transient product (TEST_ prefix) that is fully cleaned up via DELETE.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests in /app/backend/tests/backend_test.py — 28 tests, run with `pytest /app/backend/tests/backend_test.py -v --junitxml=/app/test_reports/pytest/pytest_results.xml`. To login from a Playwright runner DON'T use urllib from the sandbox (ingress returns 403); use page.evaluate fetch('/api/auth/login',...) and inject token into localStorage as 'oculux_token'. The admin chip in nav is rendered as text 'ADMIN' (uppercased via CSS .chip overline) — search for 'ADMIN' (uppercase) not 'Admin'. Stat card labels render UPPERCASE ('REVENUE','ORDERS','PRODUCTS','CUSTOMERS'). Admin /api/admin/products POST body must include slug,name,tagline,description,price,tier,color,image,features:[],specs:{},stock — duplicate slug returns 400. The ProductForm modal submit button is below the fold; if scripting CRUD via UI, scroll modal first or use API directly.",
+  "rca of the issue": "N/A — no production bugs found. Only test-ergonomics issues (missing data-testid + name attrs on Admin.jsx form/buttons) which I am reporting as action items, not blockers."
+}

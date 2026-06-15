@@ -25,7 +25,7 @@ export default function Shop() {
   }, [tier]);
 
   return (
-    <main className="bg-[#050505] pt-32 pb-24">
+    <main className="bg-white pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
@@ -36,13 +36,11 @@ export default function Shop() {
             {TIERS.map((t) => (
               <button
                 key={t.label}
-                onClick={() => {
-                  if (t.key) setParams({ tier: t.key }); else setParams({});
-                }}
+                onClick={() => { if (t.key) setParams({ tier: t.key }); else setParams({}); }}
                 className={`px-4 py-2 rounded-full text-xs mono uppercase tracking-widest border transition-colors ${
                   tier === t.key
-                    ? "bg-[#00F0FF] text-black border-[#00F0FF]"
-                    : "border-white/15 text-white/70 hover:border-white/40"
+                    ? "bg-[#1D1D1F] text-white border-[#1D1D1F]"
+                    : "border-[#E5E5EA] text-[#1D1D1F] hover:border-[#1D1D1F]"
                 }`}
               >
                 {t.label}
@@ -52,7 +50,7 @@ export default function Shop() {
         </div>
 
         {loading ? (
-          <div className="text-white/50">Loading collection…</div>
+          <div className="ink-mute">Loading collection…</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {products.map((p) => (
@@ -60,19 +58,19 @@ export default function Shop() {
                 key={p.id}
                 to={`/product/${p.slug}`}
                 data-testid={PRODUCT.card(p.id)}
-                className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-[#0a0a0a] border border-white/5 hover:border-[#00F0FF]/30 transition-colors"
+                className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-[#F5F5F7] border border-[#E5E5EA] hover:border-[#1D1D1F] transition-colors"
               >
-                <img src={p.image} alt={p.name} className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:scale-105 group-hover:opacity-100 transition-all duration-700" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                <img src={p.image} alt={p.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
                 <div className="absolute top-4 left-4">
-                  <span className="mono text-[10px] tracking-widest uppercase text-white/70 border border-white/15 rounded-full px-2 py-1">{p.tier}</span>
+                  <span className="chip">{p.tier}</span>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <h3 className="display text-2xl">{p.name}</h3>
-                  <p className="text-sm text-white/60 mt-1">{p.tagline}</p>
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                  <h3 className="display text-2xl text-white">{p.name}</h3>
+                  <p className="text-sm opacity-85 mt-1">{p.tagline}</p>
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="mono text-white">${p.price.toFixed(0)}</span>
-                    <span className="inline-flex items-center gap-1 text-[#00F0FF] text-sm">View <ArrowRight className="w-4 h-4"/></span>
+                    <span className="mono">${p.price.toFixed(0)}</span>
+                    <span className="inline-flex items-center gap-1 text-sm">View <ArrowRight className="w-4 h-4"/></span>
                   </div>
                 </div>
               </Link>

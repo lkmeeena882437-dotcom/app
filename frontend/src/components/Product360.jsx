@@ -33,7 +33,7 @@ export default function Product360({ image, alt = "Product 360" }) {
       ref={wrap}
       onMouseDown={onDown} onMouseMove={onMove} onMouseUp={onUp} onMouseLeave={onUp}
       onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onUp}
-      className="relative aspect-square w-full rounded-3xl overflow-hidden bg-gradient-to-br from-[#0a0a0a] to-[#000] border border-white/10 select-none cursor-grab active:cursor-grabbing"
+      className="relative aspect-square w-full rounded-3xl overflow-hidden bg-gradient-to-br from-[#F5F5F7] to-white border border-[#E5E5EA] select-none cursor-grab active:cursor-grabbing"
       style={{ perspective: "1200px" }}
     >
       <div className="absolute inset-0 grid place-items-center">
@@ -45,9 +45,9 @@ export default function Product360({ image, alt = "Product 360" }) {
           style={{ transform: `rotateY(${angle}deg)` }}
         />
       </div>
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-full glass text-xs">
-        <RotateCw className="w-3 h-3 text-[#00F0FF]" />
-        <span className="mono text-white/70">Drag to rotate · 360°</span>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-2 rounded-full bg-white border border-[#E5E5EA] text-xs shadow-sm">
+        <RotateCw className="w-3 h-3 text-[#1D1D1F]" />
+        <span className="mono ink-mute">Drag to rotate · 360°</span>
       </div>
     </div>
   );

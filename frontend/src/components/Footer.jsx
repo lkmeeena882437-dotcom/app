@@ -23,17 +23,17 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative border-t border-white/10 bg-[#050505]">
-      <div className="cyber-line" />
+    <footer className="relative border-t border-[#E5E5EA] bg-white">
+      <div className="hairline" />
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-20 grid grid-cols-1 md:grid-cols-12 gap-12">
         <div className="md:col-span-5">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full border border-[#00F0FF]/40 grid place-items-center">
-              <Sparkles className="w-4 h-4 text-[#00F0FF]" />
+            <div className="w-8 h-8 rounded-full silver-border grid place-items-center bg-white">
+              <Sparkles className="w-4 h-4 text-[#1D1D1F]" />
             </div>
-            <span className="display text-xl">OCULUX</span>
+            <span className="display text-xl ink">OCULUX</span>
           </div>
-          <p className="mt-6 text-white/60 text-sm max-w-sm leading-relaxed">
+          <p className="mt-6 ink-mute text-sm max-w-sm leading-relaxed">
             Cinematic intelligence, worn beautifully. Crafted for the next
             generation of seeing.
           </p>
@@ -45,13 +45,13 @@ export default function Footer() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#00F0FF]/60"
+              className="flex-1 bg-white border border-[#E5E5EA] rounded-lg px-4 py-3 text-sm text-[#1D1D1F] placeholder-[#A1A1A6] focus:outline-none focus:border-[#1D1D1F]"
             />
             <button
               data-testid={FOOTER.newsletterSubmit}
               type="submit"
               disabled={busy}
-              className="px-5 py-3 rounded-lg bg-white text-black text-sm font-medium hover:bg-[#00F0FF] transition-colors flex items-center gap-2"
+              className="px-5 py-3 rounded-lg bg-[#1D1D1F] text-white text-sm font-medium hover:bg-black transition-colors flex items-center gap-2"
             >
               <ArrowRight className="w-4 h-4" />
             </button>
@@ -68,16 +68,16 @@ export default function Footer() {
               <div className="overline mb-4">{col.title}</div>
               <ul className="space-y-3">
                 {col.links.map(([label,to]) => (
-                  <li key={label}><Link to={to} className="text-sm text-white/70 hover:text-white transition-colors">{label}</Link></li>
+                  <li key={label}><Link to={to} className="text-sm ink-soft hover:text-[#0A0A0B] transition-colors">{label}</Link></li>
                 ))}
               </ul>
             </div>
           ))}
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pb-10 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-white/5 pt-6">
-        <p className="text-xs text-white/40">© {new Date().getFullYear()} Oculux. All sights reserved.</p>
-        <p className="mono text-[10px] text-white/40">v2.0 · CINEMATIC INTELLIGENCE</p>
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pb-10 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-[#E5E5EA] pt-6">
+        <p className="text-xs ink-faint">© {new Date().getFullYear()} Oculux. All sights reserved.</p>
+        <p className="mono text-[10px] ink-faint">v2.1 · CINEMATIC INTELLIGENCE</p>
       </div>
     </footer>
   );

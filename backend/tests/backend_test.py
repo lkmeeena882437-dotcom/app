@@ -199,3 +199,122 @@ class TestOrders:
         orders = r.json()
         assert isinstance(orders, list)
         assert orders == []
+
+
+
+# ---------- Admin ----------
+ADMIN_EMAIL = "admin@oculux.com"
+ADMIN_PASSWORD = "OculuxAdmin#2026"
+
+
+@pytest.fixture(scope="session")
+def admin_headers(session):
+    r = session.post(f"{API}/auth/login", json={
+        "email": ADMIN_EMAIL, "password": ADMIN_PASSWORD
+    })
+    assert r.status_code == 200, f"admin login failed: {r.status_code} {r.text}"
+    data = r.json()
+    assert data["user"].get("is_admin") is True, f"admin user does not have is_admin=true: {data}"
+    return {"Authorization": f"Bearer {data['token']}"}
+
+
+class TestAdmin:
+    def test_admin_login_has_is_admin(self, session):
+        r = session.post(f"{API}/auth/login", json={
+            "email": ADMIN_EMAIL, "password": ADMIN_PASSWORD
+        })
+        assert r.status_code == 200
+        data = r.json()
+        assert data["user"]["email"] == ADMIN_EMAIL
+        assert data["user"]["is_admin"] is True
+
+    def test_stats_requires_auth_401(self):
+        r = requests.get(f"{API}/admin/stats")
+        assert r.status_code == 401
+
+    def test_stats_requires_admin_403_for_customer(self, session, auth_headers):
+        r = session.get(f"{API}/admin/stats", headers=auth_headers)
+        assert r.status_code == 403
+
+    def test_admin_stats_ok(self, session, admin_headers):
+        r = session.get(f"{API}/admin/stats", headers=admin_headers)
+        assert r.status_code == 200
+        data = r.json()
+        for k in ["orders", "users", "products", "revenue"]:
+            assert k in data, f"missing key {k} in {data}"
+        assert data["products"] >= 6
+
+    def test_admin_list_products(self, session, admin_headers):
+        r = session.get(f"{API}/admin/products", headers=admin_headers)
+        assert r.status_code == 200
+        items = r.json()
+        assert isinstance(items, list)
+        assert len(items) >= 6
+
+    def test_admin_list_orders(self, session, admin_headers):
+        r = session.get(f"{API}/admin/orders", headers=admin_headers)
+        assert r.status_code == 200
+        assert isinstance(r.json(), list)
+
+    def test_admin_list_users_includes_admin(self, session, admin_headers):
+        r = session.get(f"{API}/admin/users", headers=admin_headers)
+        assert r.status_code == 200
+        users = r.json()
+        emails = [u["email"] for u in users]
+        assert ADMIN_EMAIL in emails
+        # passwords must not be exposed
+        for u in users:
+            assert "password" not in u
+            assert "_id" not in u
+
+    def test_admin_product_crud_and_duplicate_slug(self, session, admin_headers):
+        slug = f"test-prod-{RAND}"
+        payload = {
+            "slug": slug,
+            "name": "TEST_Product",
+            "tagline": "Test",
+            "description": "Test product",
+            "price": 199.0,
+            "tier": "pro",
+            "color": "Black",
+            "image": "https://example.com/x.jpg",
+            "features": ["a", "b"],
+            "specs": {"weight": "10g"},
+            "stock": 50,
+        }
+        # CREATE
+        r = session.post(f"{API}/admin/products", json=payload, headers=admin_headers)
+        assert r.status_code == 200, f"create failed: {r.text}"
+        created = r.json()
+        assert created["slug"] == slug
+        assert created["price"] == 199.0
+        pid = created["id"]
+
+        # GET via public endpoint - verify persistence
+        r_get = session.get(f"{API}/products/{slug}")
+        assert r_get.status_code == 200
+        assert r_get.json()["id"] == pid
+
+        # DUPLICATE slug
+        r_dup = session.post(f"{API}/admin/products", json=payload, headers=admin_headers)
+        assert r_dup.status_code == 400
+
+        # UPDATE - change price
+        upd_payload = dict(payload)
+        upd_payload["price"] = 259.0
+        r_upd = session.put(f"{API}/admin/products/{pid}", json=upd_payload, headers=admin_headers)
+        assert r_upd.status_code == 200, r_upd.text
+        assert r_upd.json()["price"] == 259.0
+
+        # Verify update persisted
+        r_get2 = session.get(f"{API}/products/{slug}")
+        assert r_get2.json()["price"] == 259.0
+
+        # DELETE
+        r_del = session.delete(f"{API}/admin/products/{pid}", headers=admin_headers)
+        assert r_del.status_code == 200
+        assert r_del.json().get("ok") is True
+
+        # Verify removed
+        r_g = session.get(f"{API}/products/{slug}")
+        assert r_g.status_code == 404
