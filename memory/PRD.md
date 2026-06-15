@@ -1,41 +1,44 @@
 # Oculux AI Glasses — Flagship E-commerce Storefront
 
 ## Original Problem Statement
-Build an ultra-premium, flagship-level e-commerce storefront for "Oculux AI Glasses" benchmarked against Ray-Ban Meta + Oakley. Three audience tiers (Kids, Youth/Professionals, Seniors). Cinematic 4K/8K aesthetic, dark mode foundation with subtle cyber/AI cyan accents. Glass-morphic minimalist navigation, scroll-triggered tech-spec teardown, AR webcam try-on, social reels grid, 3D 360° viewer, floating support widget, Stripe-secured checkout, JWT auth.
+Build an ultra-premium, flagship-level e-commerce storefront for "Oculux AI Glasses" benchmarked against Ray-Ban Meta + Oakley. Three audience tiers (Kids, Youth/Professionals, Seniors). Cinematic 4K/8K aesthetic.
 
-## User Choices (1st session, Feb 2026)
-1. Full functional storefront (catalog + cart + Stripe checkout + auth)
-2. Stripe (test mode)
-3. Real webcam-based AR overlay
-4. Placeholder curated cinematic imagery (user provides assets later)
-5. JWT-based custom auth
+## Iteration Log
 
-## Architecture
-- **Frontend:** React 19 + craco + Tailwind + shadcn primitives + framer-motion + sonner. Routes under react-router-dom v7.
-- **Backend:** FastAPI on `:8001`, all routes prefixed `/api`. Motor async MongoDB. JWT via `pyjwt` + bcrypt. Stripe via `emergentintegrations`.
-- **Mongo collections:** `products`, `users`, `orders`, `payment_transactions`, `newsletter`.
-- **Design system:** Obsidian Black palette (#050505) + Cyber Cyan accent (#00F0FF), Clash Display (headings) + Outfit (body) + JetBrains Mono (meta). Glass-morphism navigation, scroll-triggered teardown, marquee press strip.
+### Iteration 1 (Feb 15, 2026) — MVP
+- Dark cinematic theme; cyan glow accents; cinematic hero, glass-morphic nav, 3-tier audience cards
+- Scroll-triggered "teardown" tech-spec section; Social Reels grid (9:16)
+- Shop + PDP + 360° viewer; slider-based AR overlay; Cart drawer + Cart page
+- JWT signup/signin + Account/Orders; Stripe Checkout (test mode) + polling on success/cancel
+- Newsletter signup, concierge support widget
+- 6 seeded products across 3 tiers
+- **Tests: 20/20 backend + full frontend E2E**
 
-## Implemented (Feb 15, 2026)
-- Cinematic full-bleed hero, glass-morphic nav, 3-tier audience cards
-- Scroll-triggered "teardown" tech spec section with pulsing hotspots
-- Social Reels (vertical 9:16) grid
-- Shop with tier-filter chips; PDP with 360° viewer, gallery thumbs, Add-to-cart & Buy now
-- AR Try-On webcam + on-screen glasses overlay with scale & vertical sliders
-- Cart drawer + Cart page, JWT signup/signin, Account + Orders
-- Stripe Checkout session create + polling on success/cancel routes; idempotent order creation
-- Newsletter signup, floating concierge support widget, footer marquee
-- Backend seeded with 6 products across 3 tiers
-- Tested: 20/20 backend pytest + full frontend E2E (100% pass)
+### Iteration 2 (Feb 15, 2026) — Light-mode + AR + Admin + Email
+- **Full Light-Mode Overhaul**: every page re-themed to Apple/premium-auto aesthetic
+  - Background palette: `#FFFFFF` + `#F5F5F7` soft floors
+  - Typography: Clash Display + Outfit on near-black `#0A0A0B`/`#1D1D1F`
+  - Removed all cyan/neon; replaced with matte silver borders + ink black CTAs
+- **Real MediaPipe FaceMesh AR Try-On**: `@mediapipe/tasks-vision@0.10.14` loaded via CDN ESM at runtime; face-locked glasses overlay tracks eye landmarks (33/263) with rotation; size & bridge fine-tune sliders for personal preference
+- **Admin Dashboard** (`/admin`): Overview stats (revenue/orders/products/users), Products CRUD with modal form, Orders table, Users table. Role-gated via `is_admin` JWT claim; seeded admin `admin@oculux.com` / `OculuxAdmin#2026`
+- **Resend email receipts**: HTML receipt fires async on payment confirmation; gracefully no-ops when `RESEND_API_KEY` is empty
+- Backend endpoints added: `/api/admin/{stats,products,orders,users}` (GET) + product `POST/PUT/DELETE`
+- Stock decrement on order; order persistence keyed to session_id (idempotent)
+- **Tests: 28/28 backend + frontend ~90%** (only test-ergonomics items, no real bugs). Added data-testids on Admin tabs, form fields, row actions.
 
 ## P0/P1/P2 Backlog
-- **P1**: Replace placeholder reels with real vertical video assets; embed real cinematic hero video provided by user.
-- **P1**: Real face-tracking AR (MediaPipe FaceMesh) for mesh-locked frame physics.
-- **P2**: Admin dashboard for products/orders; saved frames per user; email receipts via SendGrid; order tracking.
-- **P2**: Multi-currency + locale switcher; reviews & ratings; live concierge chat (LLM-powered).
-- **P2**: Trade-in flow, prescription lens upgrade, financing (Affirm).
+- **P1**: Real cinematic hero video once user uploads assets
+- **P1**: Re-hash admin password on startup if `ADMIN_PASSWORD` env differs
+- **P1**: Admin offline-fallback message if MediaPipe CDN is blocked
+- **P2**: Reviews & ratings; "People also bought" recs; email beyond receipts (shipped/refund)
+- **P2**: Currency + locale switcher; trade-in flow; financing (Affirm)
+- **P2**: Split server.py into `routers/{admin,payments,email,products}.py`
+
+## Test Credentials (current)
+- Admin: `admin@oculux.com` / `OculuxAdmin#2026`
+- Customer: register fresh; Stripe test card: `4242 4242 4242 4242`
 
 ## Next Tasks
-- Add cinematic hero video once user uploads media assets
-- Wire MediaPipe FaceMesh into ARTryOn for true face-locked frames
-- Add product reviews + “People also bought” recommendation strip
+- Add cinematic hero video / 4K product photography from user
+- Drop in real Resend API key → email receipts will activate automatically
+- Optional: split backend into routers for clarity

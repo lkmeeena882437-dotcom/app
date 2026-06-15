@@ -58,7 +58,7 @@ export default function Navigation() {
 
         <div className="flex items-center gap-3">
           {user?.is_admin && (
-            <Link to="/admin" className="hidden sm:inline-flex items-center gap-2 text-xs mono uppercase tracking-widest text-[#1D1D1F] px-3 py-1.5 rounded-full border border-[#E5E5EA] hover:border-[#1D1D1F]">
+            <Link to="/admin" data-testid="nav-admin-chip" className="hidden sm:inline-flex items-center gap-2 text-xs mono uppercase tracking-widest text-[#1D1D1F] px-3 py-1.5 rounded-full border border-[#E5E5EA] hover:border-[#1D1D1F]">
               <Shield className="w-3 h-3" /> Admin
             </Link>
           )}

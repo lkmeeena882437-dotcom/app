@@ -80,31 +80,31 @@ function ProductForm({ initial, onClose, onSaved }) {
         </div>
         <form onSubmit={submit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Name"><Input value={form.name} onChange={(v)=>setForm({...form, name:v})} required/></Field>
-            <Field label="Slug"><Input value={form.slug} onChange={(v)=>setForm({...form, slug:v})} required disabled={isEdit}/></Field>
+            <Field label="Name"><Input name="name" value={form.name} onChange={(v)=>setForm({...form, name:v})} required/></Field>
+            <Field label="Slug"><Input name="slug" value={form.slug} onChange={(v)=>setForm({...form, slug:v})} required disabled={isEdit}/></Field>
             <Field label="Tier">
-              <select className={inputCls} value={form.tier} onChange={(e)=>setForm({...form, tier:e.target.value})}>
+              <select name="tier" data-testid="admin-input-tier" className={inputCls} value={form.tier} onChange={(e)=>setForm({...form, tier:e.target.value})}>
                 {TIERS.map((t)=><option key={t} value={t}>{t}</option>)}
               </select>
             </Field>
-            <Field label="Color"><Input value={form.color} onChange={(v)=>setForm({...form, color:v})}/></Field>
-            <Field label="Price (USD)"><Input type="number" step="0.01" value={form.price} onChange={(v)=>setForm({...form, price:v})} required/></Field>
-            <Field label="Stock"><Input type="number" value={form.stock} onChange={(v)=>setForm({...form, stock:v})}/></Field>
+            <Field label="Color"><Input name="color" value={form.color} onChange={(v)=>setForm({...form, color:v})}/></Field>
+            <Field label="Price (USD)"><Input name="price" type="number" step="0.01" value={form.price} onChange={(v)=>setForm({...form, price:v})} required/></Field>
+            <Field label="Stock"><Input name="stock" type="number" value={form.stock} onChange={(v)=>setForm({...form, stock:v})}/></Field>
           </div>
-          <Field label="Tagline"><Input value={form.tagline} onChange={(v)=>setForm({...form, tagline:v})}/></Field>
-          <Field label="Image URL"><Input value={form.image} onChange={(v)=>setForm({...form, image:v})}/></Field>
+          <Field label="Tagline"><Input name="tagline" value={form.tagline} onChange={(v)=>setForm({...form, tagline:v})}/></Field>
+          <Field label="Image URL"><Input name="image" value={form.image} onChange={(v)=>setForm({...form, image:v})}/></Field>
           <Field label="Description">
-            <textarea rows={4} className={inputCls} value={form.description} onChange={(e)=>setForm({...form, description:e.target.value})}/>
+            <textarea name="description" data-testid="admin-input-description" rows={4} className={inputCls} value={form.description} onChange={(e)=>setForm({...form, description:e.target.value})}/>
           </Field>
           <Field label="Features (one per line)">
-            <textarea rows={3} className={inputCls} value={form.features} onChange={(e)=>setForm({...form, features:e.target.value})}/>
+            <textarea name="features" data-testid="admin-input-features" rows={3} className={inputCls} value={form.features} onChange={(e)=>setForm({...form, features:e.target.value})}/>
           </Field>
           <Field label="Specs (key: value per line)">
-            <textarea rows={3} className={inputCls} value={form.specs} onChange={(e)=>setForm({...form, specs:e.target.value})}/>
+            <textarea name="specs" data-testid="admin-input-specs" rows={3} className={inputCls} value={form.specs} onChange={(e)=>setForm({...form, specs:e.target.value})}/>
           </Field>
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="btn-ghost text-sm">Cancel</button>
-            <button disabled={busy} className="btn-ink text-sm">{busy ? "Saving…" : "Save"}</button>
+            <button type="button" data-testid="admin-form-cancel" onClick={onClose} className="btn-ghost text-sm">Cancel</button>
+            <button data-testid="admin-form-save" disabled={busy} className="btn-ink text-sm">{busy ? "Saving…" : "Save"}</button>
           </div>
         </form>
       </div>
@@ -119,8 +119,8 @@ const Field = ({ label, children }) => (
     <div className="mt-1.5">{children}</div>
   </label>
 );
-const Input = ({ value, onChange, ...rest }) => (
-  <input className={inputCls} value={value} onChange={(e)=>onChange(e.target.value)} {...rest}/>
+const Input = ({ value, onChange, name, ...rest }) => (
+  <input className={inputCls} name={name} value={value} onChange={(e)=>onChange(e.target.value)} data-testid={name ? `admin-input-${name}` : undefined} {...rest}/>
 );
 
 export default function Admin() {
@@ -190,6 +190,7 @@ export default function Admin() {
           {TABS.map((t) => (
             <button
               key={t.key}
+              data-testid={`admin-tab-${t.key}`}
               onClick={() => setTab(t.key)}
               className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-colors ${
                 tab === t.key ? "bg-[#1D1D1F] text-white" : "bg-white border border-[#E5E5EA] ink hover:border-[#1D1D1F]"
@@ -213,7 +214,7 @@ export default function Admin() {
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
               <div className="overline">{products.length} products</div>
-              <button onClick={() => setEditing("new")} className="btn-ink inline-flex items-center gap-2 text-sm">
+              <button data-testid="admin-new-product-btn" onClick={() => setEditing("new")} className="btn-ink inline-flex items-center gap-2 text-sm">
                 <Plus className="w-4 h-4"/> New product
               </button>
             </div>
@@ -244,8 +245,8 @@ export default function Admin() {
                       <td className="px-5 py-3 ink">${p.price.toFixed(2)}</td>
                       <td className="px-5 py-3 ink">{p.stock ?? 0}</td>
                       <td className="px-5 py-3 text-right">
-                        <button onClick={() => setEditing(p)} className="inline-flex items-center gap-1 text-xs ink-soft hover:text-[#0A0A0B] mr-3"><Pencil className="w-3 h-3"/> Edit</button>
-                        <button onClick={() => deleteProduct(p.id)} className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-700"><Trash2 className="w-3 h-3"/> Delete</button>
+                        <button data-testid={`admin-row-edit-${p.id}`} onClick={() => setEditing(p)} className="inline-flex items-center gap-1 text-xs ink-soft hover:text-[#0A0A0B] mr-3"><Pencil className="w-3 h-3"/> Edit</button>
+                        <button data-testid={`admin-row-delete-${p.id}`} onClick={() => deleteProduct(p.id)} className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-700"><Trash2 className="w-3 h-3"/> Delete</button>
                       </td>
                     </tr>
                   ))}
