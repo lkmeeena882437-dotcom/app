@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Check, X, Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import { useCart } from "@/context/CartContext";
+import { formatINR } from "@/lib/format";
 
 export default function CheckoutResult({ outcome }) {
   const loc = useLocation();
@@ -15,8 +16,17 @@ export default function CheckoutResult({ outcome }) {
   useEffect(() => {
     if (outcome !== "success") return;
     const params = new URLSearchParams(loc.search);
-    const sessionId = params.get("session_id");
+    const isMock = params.get("mock") === "1";
+    const sessionId = params.get("session_id") || (params.get("order_id") ? `mock_${params.get("order_id")}` : null);
     if (!sessionId) { setStatus("error"); return; }
+
+    // Mock path resolves immediately on the backend
+    if (isMock) {
+      api.get(`/checkout/status/${sessionId}`).then((r) => {
+        setTx(r.data); setStatus("paid"); clear();
+      }).catch(() => setStatus("error"));
+      return;
+    }
 
     let cancelled = false;
     const poll = async () => {
@@ -26,16 +36,10 @@ export default function CheckoutResult({ outcome }) {
         const r = await api.get(`/checkout/status/${sessionId}`);
         if (cancelled) return;
         setTx(r.data);
-        if (r.data.payment_status === "paid") {
-          setStatus("paid");
-          clear();
-          return;
-        }
+        if (r.data.payment_status === "paid") { setStatus("paid"); clear(); return; }
         if (r.data.status === "expired") { setStatus("expired"); return; }
         setTimeout(poll, 2000);
-      } catch (e) {
-        if (!cancelled) setStatus("error");
-      }
+      } catch (e) { if (!cancelled) setStatus("error"); }
     };
     poll();
     return () => { cancelled = true; };
@@ -58,9 +62,9 @@ export default function CheckoutResult({ outcome }) {
               <Check className="w-7 h-7 text-white"/>
             </div>
             <h1 className="display text-5xl mt-6">Order confirmed.</h1>
-            <p className="ink-mute mt-2">A receipt is on its way. We'll start crafting your Oculux.</p>
+            <p className="ink-mute mt-2">A receipt is on its way. We'll start crafting your OculuxVision.</p>
             {tx && (
-              <p className="mono text-xs ink-faint mt-4">Total: ${(tx.amount_total/100).toFixed(2)} {tx.currency?.toUpperCase()}</p>
+              <p className="mono text-xs ink-faint mt-4">Total: {formatINR((tx.amount_total||0)/100)} {tx.currency?.toUpperCase()}</p>
             )}
             <div className="mt-8 flex justify-center gap-3 flex-wrap">
               <Link to="/account" className="btn-ink text-sm">View orders</Link>
@@ -79,7 +83,7 @@ export default function CheckoutResult({ outcome }) {
         {(status === "expired" || status === "timeout" || status === "error") && (
           <>
             <h1 className="display text-4xl mt-6">We couldn't confirm that payment.</h1>
-            <p className="ink-mute mt-2">Please contact concierge or retry checkout.</p>
+            <p className="ink-mute mt-2">Please contact our Telegram concierge or retry checkout.</p>
             <button onClick={() => nav("/cart")} className="btn-ink mt-8 text-sm">Retry</button>
           </>
         )}

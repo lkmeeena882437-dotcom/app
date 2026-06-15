@@ -4,26 +4,31 @@ const CartContext = createContext(null);
 const STORAGE_KEY = "oculux_cart_v1";
 
 export const CartProvider = ({ children }) => {
-  const [items, setItems] = useState([]); // [{product, quantity}]
+  const [items, setItems] = useState([]);
+  const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
 
+  // Hydrate first
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) setItems(JSON.parse(raw));
     } catch (_) {}
+    setLoaded(true);
   }, []);
 
+  // Persist ONLY after hydration completes (prevents wiping cart on mount/StrictMode)
   useEffect(() => {
+    if (!loaded) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
+  }, [items, loaded]);
 
   const add = (product, quantity = 1) => {
     setItems((cur) => {
       const idx = cur.findIndex((x) => x.product.id === product.id);
       if (idx >= 0) {
         const next = [...cur];
-        next[idx] = { ...next[idx], quantity: Math.min(10, next[idx].quantity + quantity) };
+        next[idx] = { ...next[idx], quantity: Math.min(10, next[idx].quantity + quantity), product };
         return next;
       }
       return [...cur, { product, quantity }];

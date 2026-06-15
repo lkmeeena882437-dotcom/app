@@ -3,6 +3,7 @@ import { Navigate, Link } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { AUTH } from "@/constants/testIds";
+import { formatINR } from "@/lib/format";
 import { Shield } from "lucide-react";
 
 export default function Account() {
@@ -25,7 +26,7 @@ export default function Account() {
           <div>
             <div className="overline">Your account</div>
             <h1 className="display text-5xl mt-3">Hello, {user.name}.</h1>
-            <p className="ink-mute mt-2">{user.email}</p>
+            <p className="ink-mute mt-2">{user.phone || user.email}</p>
           </div>
           <div className="flex items-center gap-2">
             {user.is_admin && (
@@ -51,10 +52,11 @@ export default function Account() {
               {orders.map((o) => (
                 <li key={o.id} className="p-4 rounded-2xl border border-[#E5E5EA] bg-[#F5F5F7] flex justify-between items-center gap-3 flex-wrap">
                   <div>
-                    <div className="mono text-xs ink-faint">#{o.id.slice(0,8).toUpperCase()}</div>
+                    <div className="mono text-xs ink-faint">#{o.id.slice(0,8).toUpperCase()} · {o.payment_method?.toUpperCase() || "STRIPE"}</div>
                     <div className="text-sm mt-1 ink">{o.items.length} item{o.items.length>1?"s":""} · {new Date(o.created_at).toLocaleDateString()}</div>
+                    {o.shipping?.city && <div className="text-xs ink-mute mt-0.5">Shipping to {o.shipping.city}, {o.shipping.state} {o.shipping.pin}</div>}
                   </div>
-                  <div className="display text-xl ink">${(o.amount_total ?? 0).toFixed(2)}</div>
+                  <div className="display text-xl ink">{formatINR(o.amount_total || 0)}</div>
                 </li>
               ))}
             </ul>

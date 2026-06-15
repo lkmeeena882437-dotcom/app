@@ -8,7 +8,7 @@ import { CartProvider } from "@/context/CartContext";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
-import SupportWidget from "@/components/SupportWidget";
+import AskAI from "@/components/AskAI";
 
 import Home from "@/pages/Home";
 import Shop from "@/pages/Shop";
@@ -43,7 +43,7 @@ function App() {
               <Route path="*" element={<Home />} />
             </Routes>
             <CartDrawer />
-            <SupportWidget />
+            <AskAI />
             <Footer />
             <Toaster
               theme="light"

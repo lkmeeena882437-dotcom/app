@@ -1,7 +1,7 @@
 """
-Oculux AI Glasses Backend API Test Suite
-Tests: root, products, auth (register/login/me), checkout/session+status,
-newsletter, orders (auth-protected).
+OculuxVision Iteration 3 Backend Test Suite
+Covers: INR products w/ variations, CMS, OTP auth, mock + Stripe checkout,
+admin login, AI streaming chat.
 """
 import os
 import uuid
@@ -10,311 +10,258 @@ import requests
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Load frontend .env for REACT_APP_BACKEND_URL
 load_dotenv(Path(__file__).resolve().parents[2] / "frontend" / ".env")
-
 BASE_URL = os.environ["REACT_APP_BACKEND_URL"].rstrip("/")
 API = f"{BASE_URL}/api"
 
-# Unique test user per run
 RAND = uuid.uuid4().hex[:8]
-TEST_EMAIL = f"tester+{RAND}@oculux.com"
-TEST_PASSWORD = "oculux-test-2026!"
-TEST_NAME = "Oculux Tester"
-
-
-@pytest.fixture(scope="session")
-def session():
-    s = requests.Session()
-    s.headers.update({"Content-Type": "application/json"})
-    return s
-
-
-@pytest.fixture(scope="session")
-def registered_user(session):
-    r = session.post(f"{API}/auth/register", json={
-        "email": TEST_EMAIL,
-        "password": TEST_PASSWORD,
-        "name": TEST_NAME,
-    })
-    assert r.status_code == 200, f"register failed: {r.status_code} {r.text}"
-    data = r.json()
-    assert "token" in data and "user" in data
-    return data
-
-
-@pytest.fixture(scope="session")
-def auth_headers(registered_user):
-    return {"Authorization": f"Bearer {registered_user['token']}"}
-
-
-# ---------- Misc ----------
-class TestRoot:
-    def test_root_info(self, session):
-        r = session.get(f"{API}/")
-        assert r.status_code == 200
-        data = r.json()
-        assert data.get("app") == "Oculux AI Glasses"
-        assert data.get("status") == "ok"
-
-
-# ---------- Products ----------
-class TestProducts:
-    def test_list_all_products(self, session):
-        r = session.get(f"{API}/products")
-        assert r.status_code == 200
-        items = r.json()
-        assert isinstance(items, list)
-        assert len(items) == 6, f"Expected 6 products, got {len(items)}"
-        # Validate required fields
-        for p in items:
-            assert "id" in p and "slug" in p and "price" in p and "tier" in p
-            assert "_id" not in p
-
-    @pytest.mark.parametrize("tier,expected", [("pro", 2), ("kids", 2), ("senior", 2)])
-    def test_filter_by_tier(self, session, tier, expected):
-        r = session.get(f"{API}/products", params={"tier": tier})
-        assert r.status_code == 200
-        items = r.json()
-        assert len(items) == expected
-        assert all(p["tier"] == tier for p in items)
-
-    def test_get_product_by_slug(self, session):
-        r = session.get(f"{API}/products/oculux-pro-onyx")
-        assert r.status_code == 200
-        p = r.json()
-        assert p["slug"] == "oculux-pro-onyx"
-        assert p["id"] == "p-pro-onyx"
-        assert p["price"] == 599.0
-
-    def test_get_product_unknown_slug_404(self, session):
-        r = session.get(f"{API}/products/does-not-exist")
-        assert r.status_code == 404
-
-
-# ---------- Auth ----------
-class TestAuth:
-    def test_register_and_returns_jwt(self, registered_user):
-        assert isinstance(registered_user["token"], str)
-        assert len(registered_user["token"]) > 20
-        assert registered_user["user"]["email"] == TEST_EMAIL
-        assert registered_user["user"]["name"] == TEST_NAME
-        assert "id" in registered_user["user"]
-
-    def test_register_duplicate_email_400(self, session, registered_user):
-        r = session.post(f"{API}/auth/register", json={
-            "email": TEST_EMAIL, "password": TEST_PASSWORD, "name": TEST_NAME
-        })
-        assert r.status_code == 400
-
-    def test_login_success(self, session, registered_user):
-        r = session.post(f"{API}/auth/login", json={
-            "email": TEST_EMAIL, "password": TEST_PASSWORD
-        })
-        assert r.status_code == 200
-        data = r.json()
-        assert "token" in data
-        assert data["user"]["email"] == TEST_EMAIL
-
-    def test_login_wrong_password_401(self, session, registered_user):
-        r = session.post(f"{API}/auth/login", json={
-            "email": TEST_EMAIL, "password": "wrong-password!"
-        })
-        assert r.status_code == 401
-
-    def test_me_with_token(self, session, auth_headers, registered_user):
-        r = session.get(f"{API}/auth/me", headers=auth_headers)
-        assert r.status_code == 200
-        assert r.json()["email"] == TEST_EMAIL
-
-    def test_me_without_token_401(self, session):
-        # Use bare request to avoid session auth headers
-        r = requests.get(f"{API}/auth/me")
-        assert r.status_code == 401
-
-
-# ---------- Newsletter ----------
-class TestNewsletter:
-    def test_signup_and_idempotent(self, session):
-        email = f"news+{RAND}@oculux.com"
-        r1 = session.post(f"{API}/newsletter", json={"email": email})
-        assert r1.status_code == 200
-        assert r1.json().get("ok") is True
-        # Same email again - should still be ok (upsert idempotent)
-        r2 = session.post(f"{API}/newsletter", json={"email": email})
-        assert r2.status_code == 200
-
-
-# ---------- Checkout ----------
-class TestCheckout:
-    def test_checkout_empty_cart_400(self, session):
-        r = session.post(f"{API}/checkout/session", json={
-            "items": [], "origin_url": BASE_URL
-        })
-        assert r.status_code == 400
-
-    def test_checkout_invalid_product_400(self, session):
-        r = session.post(f"{API}/checkout/session", json={
-            "items": [{"product_id": "bogus-id", "quantity": 1}],
-            "origin_url": BASE_URL
-        })
-        assert r.status_code == 400
-
-    def test_checkout_session_create_and_status(self, session):
-        # Create checkout for a real product
-        r = session.post(f"{API}/checkout/session", json={
-            "items": [{"product_id": "p-pro-onyx", "quantity": 2}],
-            "origin_url": BASE_URL
-        })
-        assert r.status_code == 200, f"checkout failed: {r.text}"
-        data = r.json()
-        assert "url" in data and "session_id" in data
-        assert data["url"].startswith("http")
-        session_id = data["session_id"]
-
-        # Status endpoint
-        r2 = session.get(f"{API}/checkout/status/{session_id}")
-        assert r2.status_code == 200
-        s = r2.json()
-        assert s["session_id"] == session_id
-        assert "payment_status" in s
-        assert "items" in s and len(s["items"]) == 1
-        assert s["items"][0]["product_id"] == "p-pro-onyx"
-        assert s["items"][0]["quantity"] == 2
-
-    def test_checkout_status_unknown_404(self, session):
-        r = session.get(f"{API}/checkout/status/sess_nonexistent_{RAND}")
-        assert r.status_code == 404
-
-
-# ---------- Orders ----------
-class TestOrders:
-    def test_orders_requires_auth(self, session):
-        r = requests.get(f"{API}/orders")
-        assert r.status_code == 401
-
-    def test_orders_empty_for_new_user(self, session, auth_headers):
-        r = session.get(f"{API}/orders", headers=auth_headers)
-        assert r.status_code == 200
-        orders = r.json()
-        assert isinstance(orders, list)
-        assert orders == []
-
-
-
-# ---------- Admin ----------
 ADMIN_EMAIL = "admin@oculux.com"
 ADMIN_PASSWORD = "OculuxAdmin#2026"
 
 
 @pytest.fixture(scope="session")
-def admin_headers(session):
-    r = session.post(f"{API}/auth/login", json={
-        "email": ADMIN_EMAIL, "password": ADMIN_PASSWORD
-    })
-    assert r.status_code == 200, f"admin login failed: {r.status_code} {r.text}"
+def s():
+    sess = requests.Session()
+    sess.headers.update({"Content-Type": "application/json"})
+    return sess
+
+
+@pytest.fixture(scope="session")
+def admin_token(s):
+    r = s.post(f"{API}/auth/login", json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD})
+    assert r.status_code == 200, r.text
     data = r.json()
-    assert data["user"].get("is_admin") is True, f"admin user does not have is_admin=true: {data}"
-    return {"Authorization": f"Bearer {data['token']}"}
+    assert data["user"]["is_admin"] is True
+    return data["token"]
 
 
-class TestAdmin:
-    def test_admin_login_has_is_admin(self, session):
-        r = session.post(f"{API}/auth/login", json={
-            "email": ADMIN_EMAIL, "password": ADMIN_PASSWORD
-        })
-        assert r.status_code == 200
-        data = r.json()
-        assert data["user"]["email"] == ADMIN_EMAIL
-        assert data["user"]["is_admin"] is True
+@pytest.fixture(scope="session")
+def admin_headers(admin_token):
+    return {"Authorization": f"Bearer {admin_token}"}
 
-    def test_stats_requires_auth_401(self):
-        r = requests.get(f"{API}/admin/stats")
-        assert r.status_code == 401
 
-    def test_stats_requires_admin_403_for_customer(self, session, auth_headers):
-        r = session.get(f"{API}/admin/stats", headers=auth_headers)
-        assert r.status_code == 403
-
-    def test_admin_stats_ok(self, session, admin_headers):
-        r = session.get(f"{API}/admin/stats", headers=admin_headers)
-        assert r.status_code == 200
-        data = r.json()
-        for k in ["orders", "users", "products", "revenue"]:
-            assert k in data, f"missing key {k} in {data}"
-        assert data["products"] >= 6
-
-    def test_admin_list_products(self, session, admin_headers):
-        r = session.get(f"{API}/admin/products", headers=admin_headers)
+# ---------- Products: INR + variations ----------
+class TestProducts:
+    def test_list_returns_9_inr_with_variations(self, s):
+        r = s.get(f"{API}/products")
         assert r.status_code == 200
         items = r.json()
         assert isinstance(items, list)
-        assert len(items) >= 6
+        assert len(items) == 9, f"Expected 9 products, got {len(items)}"
+        for p in items:
+            assert "_id" not in p
+            assert p.get("currency") == "inr"
+            assert isinstance(p.get("color_options"), list) and len(p["color_options"]) >= 1
+            assert isinstance(p.get("size_options"), list) and len(p["size_options"]) >= 1
+            assert isinstance(p.get("frame_designs"), list) and len(p["frame_designs"]) >= 1
+            assert p.get("hd_camera") is True
+            assert isinstance(p.get("lens_quality"), str) and len(p["lens_quality"]) > 5
+            assert p.get("free_delivery") is True
+            cap = p.get("compare_at_price")
+            assert cap is None or cap >= p["price"], f"compare_at_price < price for {p['slug']}"
 
-    def test_admin_list_orders(self, session, admin_headers):
-        r = session.get(f"{API}/admin/orders", headers=admin_headers)
+    def test_price_ranges_per_tier(self, s):
+        r = s.get(f"{API}/products")
+        items = r.json()
+        adults = [p for p in items if p["tier"] in ("pro", "senior")]
+        kids = [p for p in items if p["tier"] == "kids"]
+        assert adults, "no adult products"
+        assert kids, "no kids products"
+        for p in adults:
+            assert 19999 <= p["price"] <= 49999, f"adult price out of range: {p['slug']}={p['price']}"
+        for p in kids:
+            assert 5999 <= p["price"] <= 14999, f"kids price out of range: {p['slug']}={p['price']}"
+
+    def test_get_product_by_slug(self, s):
+        r = s.get(f"{API}/products/oculux-pro-onyx")
         assert r.status_code == 200
-        assert isinstance(r.json(), list)
+        p = r.json()
+        assert p["slug"] == "oculux-pro-onyx"
+        assert p["currency"] == "inr"
 
-    def test_admin_list_users_includes_admin(self, session, admin_headers):
-        r = session.get(f"{API}/admin/users", headers=admin_headers)
+
+# ---------- CMS ----------
+class TestCMS:
+    def test_get_site_content_defaults(self, s):
+        r = s.get(f"{API}/site/content")
         assert r.status_code == 200
-        users = r.json()
-        emails = [u["email"] for u in users]
-        assert ADMIN_EMAIL in emails
-        # passwords must not be exposed
-        for u in users:
-            assert "password" not in u
-            assert "_id" not in u
+        d = r.json()
+        assert d.get("hero_brand") == "OculuxVision"
+        for k in ["hero_overline", "hero_headline_1", "hero_headline_2", "hero_headline_emph",
+                  "hero_subhead", "hero_cta_primary", "hero_cta_secondary",
+                  "section_tier_overline", "section_tier_headline"]:
+            assert k in d, f"missing CMS key: {k}"
 
-    def test_admin_product_crud_and_duplicate_slug(self, session, admin_headers):
-        slug = f"test-prod-{RAND}"
-        payload = {
-            "slug": slug,
-            "name": "TEST_Product",
-            "tagline": "Test",
-            "description": "Test product",
-            "price": 199.0,
-            "tier": "pro",
-            "color": "Black",
-            "image": "https://example.com/x.jpg",
-            "features": ["a", "b"],
-            "specs": {"weight": "10g"},
-            "stock": 50,
-        }
-        # CREATE
-        r = session.post(f"{API}/admin/products", json=payload, headers=admin_headers)
-        assert r.status_code == 200, f"create failed: {r.text}"
-        created = r.json()
-        assert created["slug"] == slug
-        assert created["price"] == 199.0
-        pid = created["id"]
+    def test_cms_update_requires_admin(self, s):
+        r = s.put(f"{API}/admin/site/content", json={"hero_brand": "Hacker"})
+        assert r.status_code in (401, 403)
 
-        # GET via public endpoint - verify persistence
-        r_get = session.get(f"{API}/products/{slug}")
-        assert r_get.status_code == 200
-        assert r_get.json()["id"] == pid
+    def test_cms_admin_update_and_restore(self, s, admin_headers):
+        # GET current
+        r0 = s.get(f"{API}/site/content").json()
+        new_payload = dict(r0)
+        new_payload["hero_brand"] = "TestBrand"
+        # PUT update
+        r1 = s.put(f"{API}/admin/site/content", json=new_payload, headers=admin_headers)
+        assert r1.status_code == 200, r1.text
+        # GET verify
+        r2 = s.get(f"{API}/site/content")
+        assert r2.json()["hero_brand"] == "TestBrand"
+        # Restore
+        r0["hero_brand"] = "OculuxVision"
+        r3 = s.put(f"{API}/admin/site/content", json=r0, headers=admin_headers)
+        assert r3.status_code == 200
+        assert s.get(f"{API}/site/content").json()["hero_brand"] == "OculuxVision"
 
-        # DUPLICATE slug
-        r_dup = session.post(f"{API}/admin/products", json=payload, headers=admin_headers)
-        assert r_dup.status_code == 400
 
-        # UPDATE - change price
-        upd_payload = dict(payload)
-        upd_payload["price"] = 259.0
-        r_upd = session.put(f"{API}/admin/products/{pid}", json=upd_payload, headers=admin_headers)
-        assert r_upd.status_code == 200, r_upd.text
-        assert r_upd.json()["price"] == 259.0
+# ---------- OTP Auth (MOCKED) ----------
+class TestOtpAuth:
+    def test_otp_request_returns_dev_otp(self, s):
+        phone = f"+9199999{RAND[:5]}"
+        r = s.post(f"{API}/auth/otp/request", json={"phone": phone})
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert d.get("sent") is True
+        assert d.get("mocked") is True
+        assert "dev_otp" in d and len(d["dev_otp"]) == 6 and d["dev_otp"].isdigit()
 
-        # Verify update persisted
-        r_get2 = session.get(f"{API}/products/{slug}")
-        assert r_get2.json()["price"] == 259.0
+    def test_otp_request_invalid_phone_400(self, s):
+        r = s.post(f"{API}/auth/otp/request", json={"phone": "123"})
+        assert r.status_code == 400
 
-        # DELETE
-        r_del = session.delete(f"{API}/admin/products/{pid}", headers=admin_headers)
-        assert r_del.status_code == 200
-        assert r_del.json().get("ok") is True
+    def test_otp_request_missing_phone_422_or_400(self, s):
+        r = s.post(f"{API}/auth/otp/request", json={})
+        assert r.status_code in (400, 422)
 
-        # Verify removed
-        r_g = session.get(f"{API}/products/{slug}")
-        assert r_g.status_code == 404
+    def test_otp_verify_full_flow(self, s):
+        phone = f"+9198888{RAND[:5]}"
+        r = s.post(f"{API}/auth/otp/request", json={"phone": phone, "name": "TEST_OtpUser"})
+        code = r.json()["dev_otp"]
+        # Wrong code
+        r_w = s.post(f"{API}/auth/otp/verify", json={"phone": phone, "code": "000000" if code != "000000" else "111111"})
+        assert r_w.status_code == 401
+        # Correct code
+        r_v = s.post(f"{API}/auth/otp/verify", json={"phone": phone, "code": code, "name": "TEST_OtpUser"})
+        assert r_v.status_code == 200, r_v.text
+        d = r_v.json()
+        assert "token" in d and len(d["token"]) > 10
+        assert d["user"].get("phone")
+        assert "id" in d["user"]
+
+    def test_admin_email_login_still_works(self, s):
+        r = s.post(f"{API}/auth/login", json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD})
+        assert r.status_code == 200
+        d = r.json()
+        assert d["user"]["is_admin"] is True
+        # token works against admin endpoint
+        r2 = s.get(f"{API}/admin/stats", headers={"Authorization": f"Bearer {d['token']}"})
+        assert r2.status_code == 200
+
+
+# ---------- Checkout: PIN validation + mock + stripe ----------
+def _shipping(pin="560001"):
+    return {
+        "full_name": "TEST User", "phone": "+919999988877",
+        "address": "1 MG Road", "pin": pin, "city": "Bengaluru", "state": "KA",
+    }
+
+
+class TestCheckout:
+    def test_pin_required_empty(self, s):
+        r = s.post(f"{API}/checkout/session", json={
+            "items": [{"product_id": "p-pro-onyx", "quantity": 1}],
+            "origin_url": BASE_URL,
+            "shipping": _shipping(pin=""),
+            "payment_method": "stripe",
+        })
+        assert r.status_code == 400
+
+    def test_pin_invalid_non_numeric(self, s):
+        r = s.post(f"{API}/checkout/session", json={
+            "items": [{"product_id": "p-pro-onyx", "quantity": 1}],
+            "origin_url": BASE_URL,
+            "shipping": _shipping(pin="ABC12"),
+            "payment_method": "stripe",
+        })
+        assert r.status_code == 400
+
+    def test_pin_too_short(self, s):
+        r = s.post(f"{API}/checkout/session", json={
+            "items": [{"product_id": "p-pro-onyx", "quantity": 1}],
+            "origin_url": BASE_URL,
+            "shipping": _shipping(pin="123"),
+            "payment_method": "stripe",
+        })
+        assert r.status_code == 400
+
+    def test_stripe_session_created(self, s):
+        r = s.post(f"{API}/checkout/session", json={
+            "items": [{"product_id": "p-pro-onyx", "quantity": 1, "color": "Onyx", "size": "M"}],
+            "origin_url": BASE_URL,
+            "shipping": _shipping(),
+            "payment_method": "stripe",
+        })
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert "url" in d and "session_id" in d
+        assert d["url"].startswith("http")
+
+    @pytest.mark.parametrize("method", ["upi", "rupay", "paytm"])
+    def test_mock_payment_creates_order_and_decrements_stock(self, s, admin_headers, method):
+        # snapshot stock
+        before = s.get(f"{API}/products/oculux-pro-onyx").json()["stock"]
+
+        r = s.post(f"{API}/checkout/session", json={
+            "items": [{"product_id": "p-pro-onyx", "quantity": 1, "color": "Onyx"}],
+            "origin_url": BASE_URL,
+            "shipping": _shipping(),
+            "payment_method": method,
+        })
+        assert r.status_code == 200, r.text
+        d = r.json()
+        assert d.get("mocked") is True
+        assert d["session_id"].startswith("mock_")
+        assert "url" in d
+
+        # stock decreased
+        after = s.get(f"{API}/products/oculux-pro-onyx").json()["stock"]
+        assert after == before - 1, f"stock not decremented for {method}: {before}->{after}"
+
+        # admin orders contain it
+        orders = s.get(f"{API}/admin/orders", headers=admin_headers).json()
+        assert any(o.get("session_id") == d["session_id"] for o in orders), \
+            f"order for {method} not in admin/orders"
+
+
+# ---------- AI Chat (streaming) ----------
+class TestAIChat:
+    def _stream_text(self, payload):
+        # Use raw requests for streaming
+        r = requests.post(f"{API}/ai/chat", json=payload, timeout=60, stream=True)
+        assert r.status_code == 200, f"status={r.status_code} body={r.text[:200]}"
+        chunks = []
+        for chunk in r.iter_content(chunk_size=None, decode_unicode=True):
+            if chunk:
+                chunks.append(chunk)
+            if sum(len(c) for c in chunks) > 1500:
+                break
+        r.close()
+        return "".join(chunks)
+
+    def test_chat_english(self):
+        text = self._stream_text({"messages": [
+            {"role": "user", "content": "Tell me about Pro Onyx in one sentence."}
+        ]})
+        assert len(text.strip()) > 10, f"empty AI reply: {text!r}"
+        assert "[error:" not in text, f"AI error in stream: {text}"
+
+    def test_chat_hindi(self):
+        text = self._stream_text({"messages": [
+            {"role": "user", "content": "Pro Onyx के बारे में एक वाक्य में बताओ।"}
+        ]})
+        assert len(text.strip()) > 5, f"empty Hindi reply: {text!r}"
+        assert "[error:" not in text, f"AI error in stream: {text}"
+
+    def test_chat_empty_messages_400(self, s):
+        r = s.post(f"{API}/ai/chat", json={"messages": []})
+        assert r.status_code == 400

@@ -1,29 +1,17 @@
-import React, { useState } from "react";
-import { X, Minus, Plus, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import React from "react";
+import { X, Minus, Plus, ArrowRight, Truck } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
-import { toast } from "sonner";
-import api from "@/lib/api";
+import { formatINR } from "@/lib/format";
 import { CART } from "@/constants/testIds";
 
 export default function CartDrawer() {
   const { items, open, setOpen, remove, setQty, subtotal } = useCart();
-  const [busy, setBusy] = useState(false);
+  const nav = useNavigate();
 
-  const checkout = async () => {
-    if (!items.length) return;
-    setBusy(true);
-    try {
-      const r = await api.post("/checkout/session", {
-        items: items.map((x) => ({ product_id: x.product.id, quantity: x.quantity })),
-        origin_url: window.location.origin,
-      });
-      if (r.data?.url) window.location.href = r.data.url;
-      else throw new Error("No checkout URL");
-    } catch (e) {
-      toast.error("Checkout could not start. Please retry.");
-      setBusy(false);
-    }
+  const goCheckout = () => {
+    setOpen(false);
+    nav("/cart");
   };
 
   return (
@@ -46,30 +34,21 @@ export default function CartDrawer() {
             <div className="display text-2xl mt-1 ink">{items.length ? `${items.length} item${items.length>1?"s":""}` : "Empty"}</div>
           </div>
           <button
-            data-testid={CART.closeButton}
-            onClick={() => setOpen(false)}
+            data-testid={CART.closeButton} onClick={() => setOpen(false)}
             className="w-10 h-10 grid place-items-center rounded-full border border-[#E5E5EA] hover:border-[#1D1D1F]"
             aria-label="Close cart"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          ><X className="w-4 h-4" /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
           {items.length === 0 && (
             <div className="text-center py-16 space-y-4">
               <p className="ink-mute">Your cart is quiet.</p>
-              <Link to="/shop" onClick={() => setOpen(false)} className="btn-ghost inline-flex text-sm">
-                Discover Oculux
-              </Link>
+              <Link to="/shop" onClick={() => setOpen(false)} className="btn-ghost inline-flex text-sm">Discover OculuxVision</Link>
             </div>
           )}
           {items.map(({ product, quantity }) => (
-            <div
-              key={product.id}
-              data-testid={CART.item(product.id)}
-              className="flex gap-4 p-3 rounded-xl border border-[#E5E5EA] bg-[#F5F5F7]"
-            >
+            <div key={product.id} data-testid={CART.item(product.id)} className="flex gap-4 p-3 rounded-xl border border-[#E5E5EA] bg-[#F5F5F7]">
               <div className="w-20 h-20 rounded-lg overflow-hidden bg-white shrink-0">
                 <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
               </div>
@@ -77,15 +56,15 @@ export default function CartDrawer() {
                 <div className="flex justify-between gap-2">
                   <div>
                     <p className="text-sm font-medium truncate ink">{product.name}</p>
-                    <p className="text-xs ink-faint">{product.color}</p>
+                    <p className="text-xs ink-faint">{[product.color, product.size, product.frame_design].filter(Boolean).join(" · ")}</p>
                   </div>
-                  <p className="text-sm ink">${(product.price * quantity).toFixed(2)}</p>
+                  <p className="text-sm ink">{formatINR(product.price * quantity)}</p>
                 </div>
                 <div className="mt-3 flex items-center justify-between">
                   <div className="inline-flex items-center border border-[#E5E5EA] rounded-full bg-white">
-                    <button data-testid={CART.decQty(product.id)} onClick={() => setQty(product.id, quantity - 1)} className="w-8 h-8 grid place-items-center hover:text-[#0A0A0B]"><Minus className="w-3 h-3"/></button>
+                    <button data-testid={CART.decQty(product.id)} onClick={() => setQty(product.id, quantity - 1)} className="w-8 h-8 grid place-items-center"><Minus className="w-3 h-3"/></button>
                     <span className="w-8 text-center text-sm">{quantity}</span>
-                    <button data-testid={CART.incQty(product.id)} onClick={() => setQty(product.id, quantity + 1)} className="w-8 h-8 grid place-items-center hover:text-[#0A0A0B]"><Plus className="w-3 h-3"/></button>
+                    <button data-testid={CART.incQty(product.id)} onClick={() => setQty(product.id, quantity + 1)} className="w-8 h-8 grid place-items-center"><Plus className="w-3 h-3"/></button>
                   </div>
                   <button data-testid={CART.removeItem(product.id)} onClick={() => remove(product.id)} className="text-xs ink-faint hover:text-[#0A0A0B]">Remove</button>
                 </div>
@@ -98,17 +77,14 @@ export default function CartDrawer() {
           <div className="px-6 py-5 border-t border-[#E5E5EA] space-y-4 bg-white">
             <div className="flex justify-between">
               <span className="text-sm ink-mute">Subtotal</span>
-              <span data-testid={CART.total} className="display text-xl ink">${subtotal.toFixed(2)}</span>
+              <span data-testid={CART.total} className="display text-xl ink">{formatINR(subtotal)}</span>
             </div>
-            <p className="text-xs ink-faint">Taxes & shipping calculated at checkout.</p>
+            <p className="text-xs text-emerald-700 inline-flex items-center gap-1"><Truck className="w-3 h-3"/> Free Home Delivery across India</p>
             <button
               data-testid={CART.checkoutButton}
-              onClick={checkout}
-              disabled={busy}
-              className="btn-ink w-full inline-flex items-center justify-center gap-2 disabled:opacity-60"
-            >
-              {busy ? "Redirecting…" : "Checkout"} <ArrowRight className="w-4 h-4" />
-            </button>
+              onClick={goCheckout}
+              className="btn-ink w-full inline-flex items-center justify-center gap-2"
+            >Proceed to checkout <ArrowRight className="w-4 h-4" /></button>
           </div>
         )}
       </aside>

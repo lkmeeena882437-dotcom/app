@@ -38,7 +38,7 @@ export default function Navigation() {
           <div className="w-8 h-8 rounded-full silver-border grid place-items-center bg-white">
             <Sparkles className="w-4 h-4 text-[#1D1D1F]" />
           </div>
-          <span className="display text-xl tracking-tight ink">OCULUX</span>
+          <span className="display text-xl tracking-tight ink">OCULUXVISION</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-10">
